@@ -1,0 +1,1404 @@
+{
+  "info": {
+    "name": "Student Tech Directory - Full API Testing (Full URLs)",
+    "_postman_id": "std-full-testing-2026-full-urls",
+    "description": "Comprehensive Postman collection with FULL URLs written out.\n\nServices:\n- Eureka Server: http://localhost:8761\n- API Gateway: http://localhost:8080\n- Student Service: http://localhost:8081\n- Tech Stack Service: http://localhost:8082\n- Enrollment Service: http://localhost:8083\n- Auth Service: http://localhost:8084",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "jwt_token", "value": "" },
+    { "key": "student_id", "value": "" },
+    { "key": "techstack_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "🔐 AUTH SERVICE",
+      "description": "Auth Service runs on port 8084. Routes via Gateway at /auth/** have no AuthenticationFilter.",
+      "item": [
+        {
+          "name": "Register - New User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.test('Registration successful', function() {",
+                  "        pm.expect(jsonData.message).to.include('successfully');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser1\",\n  \"password\": \"testpass123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "register"]
+            },
+            "description": "POST http://localhost:8080/auth/register\n\nRegister a new user. Backend always assigns USER role."
+          }
+        },
+        {
+          "name": "Register - Duplicate User (should fail 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Duplicate registration returns 400', function() {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser1\",\n  \"password\": \"testpass123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "register"]
+            },
+            "description": "POST http://localhost:8080/auth/register\n\nDuplicate registration should return 400."
+          }
+        },
+        {
+          "name": "Register - Second User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser2\",\n  \"password\": \"testpass456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "register"]
+            },
+            "description": "POST http://localhost:8080/auth/register"
+          }
+        },
+        {
+          "name": "Login - Valid User (saves JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.test('Login successful - JWT saved', function() {",
+                  "        pm.expect(jsonData.token).to.not.be.empty;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser1\",\n  \"password\": \"testpass123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            },
+            "description": "POST http://localhost:8080/auth/login\n\nLogin and auto-save JWT token."
+          }
+        },
+        {
+          "name": "Login - Invalid Password (should fail 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invalid login returns 401', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser1\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            },
+            "description": "POST http://localhost:8080/auth/login\n\nInvalid password should return 401."
+          }
+        },
+        {
+          "name": "Login - Non-existent User (should fail 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Non-existent user returns 401', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"nonexistentuser\",\n  \"password\": \"somepassword\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            },
+            "description": "POST http://localhost:8080/auth/login\n\nNon-existent user should return 401."
+          }
+        },
+        {
+          "name": "Login - Admin User (saves JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.test('Admin login successful', function() {",
+                  "        pm.expect(jsonData.role).to.equal('ADMIN');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["auth", "login"]
+            },
+            "description": "POST http://localhost:8080/auth/login\n\nLogin as ADMIN (must be manually created in MongoDB first)."
+          }
+        },
+        {
+          "name": "[DIRECT] Register (Port 8084)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"directuser\",\n  \"password\": \"directpass123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8084/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["auth", "register"]
+            },
+            "description": "POST http://localhost:8084/auth/register\n\nDirect call to Auth Service (bypass gateway)."
+          }
+        },
+        {
+          "name": "[DIRECT] Login (Port 8084)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"directuser\",\n  \"password\": \"directpass123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8084/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8084",
+              "path": ["auth", "login"]
+            },
+            "description": "POST http://localhost:8084/auth/login\n\nDirect call to Auth Service (bypass gateway)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎓 STUDENT SERVICE",
+      "description": "Student Service runs on port 8081. Via Gateway: /student-service/api/students/**",
+      "item": [
+        {
+          "name": "Get All Students",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response is array', function() {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/getAllStudents",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "getAllStudents"]
+            },
+            "description": "GET http://localhost:8080/student-service/api/students/getAllStudents\n\nRequires JWT token."
+          }
+        },
+        {
+          "name": "Get Student by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/{{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "{{student_id}}"]
+            },
+            "description": "GET http://localhost:8080/student-service/api/students/{id}\n\nReplace {id} with actual MongoDB ObjectId."
+          }
+        },
+        {
+          "name": "Get Student by Name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/name/John Doe",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "name", "John Doe"]
+            },
+            "description": "GET http://localhost:8080/student-service/api/students/name/{name}\n\nGet student by name."
+          }
+        },
+        {
+          "name": "Create Student (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('student_id', jsonData.id);",
+                  "    pm.test('Student created - ID saved', function() {",
+                  "        pm.expect(jsonData.id).to.not.be.empty;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/createStudent",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "createStudent"]
+            },
+            "description": "POST http://localhost:8080/student-service/api/students/createStudent\n\nRequires ADMIN JWT. Auto-saves student_id."
+          }
+        },
+        {
+          "name": "Create Student 2 (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Smith\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/createStudent",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "createStudent"]
+            },
+            "description": "POST http://localhost:8080/student-service/api/students/createStudent\n\nCreate second student."
+          }
+        },
+        {
+          "name": "Create Student 3 (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob Wilson\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/createStudent",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "createStudent"]
+            },
+            "description": "POST http://localhost:8080/student-service/api/students/createStudent\n\nCreate third student."
+          }
+        },
+        {
+          "name": "Update Student (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/{{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "{{student_id}}"]
+            },
+            "description": "PUT http://localhost:8080/student-service/api/students/{id}\n\nRequires ADMIN JWT."
+          }
+        },
+        {
+          "name": "Delete Student (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/{{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "{{student_id}}"]
+            },
+            "description": "DELETE http://localhost:8080/student-service/api/students/{id}\n\nRequires ADMIN JWT."
+          }
+        },
+        {
+          "name": "Create Student - USER role (should fail 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('USER cannot create student', function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized Student\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/createStudent",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "createStudent"]
+            },
+            "description": "POST http://localhost:8080/student-service/api/students/createStudent\n\nLogin as USER first - should be rejected."
+          }
+        },
+        {
+          "name": "Get All Students - No Token (should fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthenticated request rejected', function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/student-service/api/students/getAllStudents",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["student-service", "api", "students", "getAllStudents"]
+            },
+            "description": "GET http://localhost:8080/student-service/api/students/getAllStudents\n\nNo JWT - should be rejected by gateway."
+          }
+        },
+        {
+          "name": "[DIRECT] Get All Students (Port 8081)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/api/students/getAllStudents",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "students", "getAllStudents"]
+            },
+            "description": "GET http://localhost:8081/api/students/getAllStudents\n\nDirect call to Student Service (bypass gateway)."
+          }
+        },
+        {
+          "name": "[DIRECT] Create Student (Port 8081 with X-User-Role)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Role", "value": "ADMIN" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Direct Student\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/students/createStudent",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8081",
+              "path": ["api", "students", "createStudent"]
+            },
+            "description": "POST http://localhost:8081/api/students/createStudent\n\nDirect call with X-User-Role header."
+          }
+        }
+      ]
+    },
+    {
+      "name": "💻 TECH STACK SERVICE",
+      "description": "Tech Stack Service runs on port 8082. Via Gateway: /tech-stack-service/api/techstacks/**",
+      "item": [
+        {
+          "name": "Get All Tech Stacks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response is array', function() {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/getAllTechStacks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "getAllTechStacks"
+              ]
+            },
+            "description": "GET http://localhost:8080/tech-stack-service/api/techstacks/getAllTechStacks\n\nRequires JWT token."
+          }
+        },
+        {
+          "name": "Get Tech Stack by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/{{techstack_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "{{techstack_id}}"
+              ]
+            },
+            "description": "GET http://localhost:8080/tech-stack-service/api/techstacks/{id}\n\nReplace {id} with actual MongoDB ObjectId."
+          }
+        },
+        {
+          "name": "Get Tech Stack by Name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/name/ReactJS",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "name",
+                "ReactJS"
+              ]
+            },
+            "description": "GET http://localhost:8080/tech-stack-service/api/techstacks/name/{name}\n\nGet tech stack by name."
+          }
+        },
+        {
+          "name": "Create Tech Stack - ReactJS (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('techstack_id', jsonData.id);",
+                  "    pm.test('TechStack created - ID saved', function() {",
+                  "        pm.expect(jsonData.id).to.not.be.empty;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ReactJS\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "createTechStack"
+              ]
+            },
+            "description": "POST http://localhost:8080/tech-stack-service/api/techstacks/createTechStack\n\nRequires ADMIN JWT. Auto-saves techstack_id."
+          }
+        },
+        {
+          "name": "Create Tech Stack - Spring Boot (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Spring Boot\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "createTechStack"
+              ]
+            },
+            "description": "POST http://localhost:8080/tech-stack-service/api/techstacks/createTechStack"
+          }
+        },
+        {
+          "name": "Create Tech Stack - MongoDB (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"MongoDB\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "createTechStack"
+              ]
+            },
+            "description": "POST http://localhost:8080/tech-stack-service/api/techstacks/createTechStack"
+          }
+        },
+        {
+          "name": "Create Tech Stack - Docker (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Docker\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "createTechStack"
+              ]
+            },
+            "description": "POST http://localhost:8080/tech-stack-service/api/techstacks/createTechStack"
+          }
+        },
+        {
+          "name": "Create Tech Stack - Kubernetes (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kubernetes\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "createTechStack"
+              ]
+            },
+            "description": "POST http://localhost:8080/tech-stack-service/api/techstacks/createTechStack"
+          }
+        },
+        {
+          "name": "Create Tech Stack - Java (ADMIN only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Java\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "createTechStack"
+              ]
+            },
+            "description": "POST http://localhost:8080/tech-stack-service/api/techstacks/createTechStack"
+          }
+        },
+        {
+          "name": "Create Tech Stack - Duplicate (should fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Duplicate tech stack rejected', function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 409, 500]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ReactJS\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "createTechStack"
+              ]
+            },
+            "description": "POST http://localhost:8080/tech-stack-service/api/techstacks/createTechStack\n\nDuplicate should fail due to unique index."
+          }
+        },
+        {
+          "name": "Update Tech Stack (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"React.js\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/{{techstack_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "{{techstack_id}}"
+              ]
+            },
+            "description": "PUT http://localhost:8080/tech-stack-service/api/techstacks/{id}\n\nRequires ADMIN JWT."
+          }
+        },
+        {
+          "name": "Delete Tech Stack (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/{{techstack_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "{{techstack_id}}"
+              ]
+            },
+            "description": "DELETE http://localhost:8080/tech-stack-service/api/techstacks/{id}\n\nRequires ADMIN JWT."
+          }
+        },
+        {
+          "name": "Get All Tech Stacks - No Token (should fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthenticated request rejected', function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/tech-stack-service/api/techstacks/getAllTechStacks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "tech-stack-service",
+                "api",
+                "techstacks",
+                "getAllTechStacks"
+              ]
+            },
+            "description": "GET http://localhost:8080/tech-stack-service/api/techstacks/getAllTechStacks\n\nNo JWT - should be rejected."
+          }
+        },
+        {
+          "name": "[DIRECT] Get All Tech Stacks (Port 8082)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/techstacks/getAllTechStacks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "techstacks", "getAllTechStacks"]
+            },
+            "description": "GET http://localhost:8082/api/techstacks/getAllTechStacks\n\nDirect call to Tech Stack Service."
+          }
+        },
+        {
+          "name": "[DIRECT] Create Tech Stack (Port 8082 with X-User-Role)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Role", "value": "ADMIN" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Python\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/techstacks/createTechStack",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8082",
+              "path": ["api", "techstacks", "createTechStack"]
+            },
+            "description": "POST http://localhost:8082/api/techstacks/createTechStack\n\nDirect call with X-User-Role header."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 ENROLLMENT SERVICE",
+      "description": "Enrollment Service runs on port 8083. Via Gateway: /enrollment-service/api/enrollments/**",
+      "item": [
+        {
+          "name": "Get All Student Profiles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function() {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "pm.test('Response is array', function() {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/enrollment-service/api/enrollments/profiles",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["enrollment-service", "api", "enrollments", "profiles"]
+            },
+            "description": "GET http://localhost:8080/enrollment-service/api/enrollments/profiles\n\nGet all student profiles with their tech stacks."
+          }
+        },
+        {
+          "name": "Enroll Student - John Doe in ReactJS, Spring Boot (USER only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.test('Enrollment successful', function() {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.be.an('array');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/enrollment-service/api/enrollments/enroll?studentName=John Doe&techStackNames=ReactJS,Spring Boot",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["enrollment-service", "api", "enrollments", "enroll"],
+              "query": [
+                { "key": "studentName", "value": "John Doe" },
+                { "key": "techStackNames", "value": "ReactJS,Spring Boot" }
+              ]
+            },
+            "description": "POST http://localhost:8080/enrollment-service/api/enrollments/enroll?studentName=John Doe&techStackNames=ReactJS,Spring Boot\n\nRequires USER JWT."
+          }
+        },
+        {
+          "name": "Enroll Student - Jane Smith in MongoDB, Docker (USER only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/enrollment-service/api/enrollments/enroll?studentName=Jane Smith&techStackNames=MongoDB,Docker",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["enrollment-service", "api", "enrollments", "enroll"],
+              "query": [
+                { "key": "studentName", "value": "Jane Smith" },
+                { "key": "techStackNames", "value": "MongoDB,Docker" }
+              ]
+            },
+            "description": "POST http://localhost:8080/enrollment-service/api/enrollments/enroll?studentName=Jane Smith&techStackNames=MongoDB,Docker"
+          }
+        },
+        {
+          "name": "Enroll Student - Bob Wilson in Java, Kubernetes (USER only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/enrollment-service/api/enrollments/enroll?studentName=Bob Wilson&techStackNames=Java,Kubernetes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["enrollment-service", "api", "enrollments", "enroll"],
+              "query": [
+                { "key": "studentName", "value": "Bob Wilson" },
+                { "key": "techStackNames", "value": "Java,Kubernetes" }
+              ]
+            },
+            "description": "POST http://localhost:8080/enrollment-service/api/enrollments/enroll?studentName=Bob Wilson&techStackNames=Java,Kubernetes"
+          }
+        },
+        {
+          "name": "Delete Enrollments by Student ID (ADMIN only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', function() {",
+                  "    pm.expect(pm.response.code).to.equal(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/enrollment-service/api/enrollments/student/{{student_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": [
+                "enrollment-service",
+                "api",
+                "enrollments",
+                "student",
+                "{{student_id}}"
+              ]
+            },
+            "description": "DELETE http://localhost:8080/enrollment-service/api/enrollments/student/{studentId}\n\nRequires ADMIN JWT. Replace {studentId} with actual MongoDB ObjectId."
+          }
+        },
+        {
+          "name": "Get Profiles - No Token (should fail)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Unauthenticated request rejected', function() {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/enrollment-service/api/enrollments/profiles",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["enrollment-service", "api", "enrollments", "profiles"]
+            },
+            "description": "GET http://localhost:8080/enrollment-service/api/enrollments/profiles\n\nNo JWT - should be rejected."
+          }
+        },
+        {
+          "name": "[DIRECT] Get Profiles (Port 8083)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8083/api/enrollments/profiles",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8083",
+              "path": ["api", "enrollments", "profiles"]
+            },
+            "description": "GET http://localhost:8083/api/enrollments/profiles\n\nDirect call to Enrollment Service."
+          }
+        },
+        {
+          "name": "[DIRECT] Enroll Student (Port 8083 with X-User-Role)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "X-User-Role", "value": "USER" }],
+            "url": {
+              "raw": "http://localhost:8083/api/enrollments/enroll?studentName=John Doe&techStackNames=ReactJS",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8083",
+              "path": ["api", "enrollments", "enroll"],
+              "query": [
+                { "key": "studentName", "value": "John Doe" },
+                { "key": "techStackNames", "value": "ReactJS" }
+              ]
+            },
+            "description": "POST http://localhost:8083/api/enrollments/enroll?studentName=John Doe&techStackNames=ReactJS\n\nDirect call with X-User-Role header."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏥 HEALTH & DISCOVERY",
+      "description": "Eureka Server and Actuator endpoints",
+      "item": [
+        {
+          "name": "Eureka Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8761/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8761",
+              "path": [""]
+            },
+            "description": "GET http://localhost:8761/\n\nEureka Server dashboard."
+          }
+        },
+        {
+          "name": "Eureka Apps",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "http://localhost:8761/eureka/apps",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8761",
+              "path": ["eureka", "apps"]
+            },
+            "description": "GET http://localhost:8761/eureka/apps\n\nList all registered services."
+          }
+        },
+        {
+          "name": "API Gateway - Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/actuator/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["actuator", "health"]
+            },
+            "description": "GET http://localhost:8080/actuator/health\n\nGateway health check."
+          }
+        },
+        {
+          "name": "API Gateway - Routes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/actuator/gateway/routes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["actuator", "gateway", "routes"]
+            },
+            "description": "GET http://localhost:8080/actuator/gateway/routes\n\nList all gateway routes."
+          }
+        },
+        {
+          "name": "API Gateway - Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/actuator/info",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["actuator", "info"]
+            },
+            "description": "GET http://localhost:8080/actuator/info\n\nGateway info."
+          }
+        }
+      ]
+    }
+  ]
+}
